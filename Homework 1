@@ -35,8 +35,8 @@ d3.json(url, function(error, data) {
 		  .selectAll("div")
 			.data(data)
 		  .enter().append("div")
-			.style("width", function(data) { return x(data) + "px"; })
-			.text(function(data) { return data; });
+			.style("width", function(d) { return x(d) + "px"; })
+			.text(function(d) { return d; });
   
 });
 
