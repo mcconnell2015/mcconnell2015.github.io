@@ -1,119 +1,43 @@
-<!doctype html>
-<html>
-<head>
-		<title>Hw1</title>
-		</head>
-	<style>
+<!doctype HTML>
+<meta charset="utf-8">
+<title>demo</title>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+<body>
+<div>
+  <h1>Open the developer's console...</h1>
+</div>
+<script>
 
-		.bar {
-		fill: steelblue;
-		}
+var url = "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson";
 
-		.bar:hover {
-		fill: brown;
-		}
+d3.json(url, function(error, data) {
+  if (error) console.log(error);
 
-				.axis {
-				  font: 10px sans-serif;
-				}
+  // All your code goes here, that is, in between the two curly brackets {...}
 
-				.axis path,
-				.axis line {
-				  fill: none;
-				  stroke: #000;
-				  shape-rendering: crispEdges;
-				}
+  // "data" is an Object with properties (you can inspect "data" in the developer's console)
+  console.log("This is the data object from USGS:", data);
 
-				.x.axis path {
-				  display: none;
-				}
+  // log the properties of "data" to the console
+  console.log("These are the properties of data object:", Object.keys(data));
 
-</style>
-	
-	<body>
-	
-	<!--Location of Script Libraries-->
-	<script src="http://d3js.org/d3.v3.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
-			<script>
-						
-			var url = "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson";
+  // data.features is an array -- one element for each earthquake
+  console.log("We want values from data.features (an array):", data.features);
 
-			var margin = {top: 20, right: 20, bottom: 30, left: 40},
-					width = 960 - margin.left - margin.right,
-					height = 500 - margin.top - margin.bottom;
+  console.log("This is the first element of data.features array:", data.features[0]);
+  
+  var x = d3.scale.linear()
+			.domain([0, d3.max(data.properties.mag)])
+			.range([0, 420]);
 
-			var x = d3.scale.ordinal()
-				.rangeRoundBands([0, width], .1);
+		d3.select(".chart")
+		  .selectAll("div")
+			.data(data)
+		  .enter().append("div")
+			.style("width", function(data) { return x(data) + "px"; })
+			.text(function(data) { return data; });
+  
+});
 
-			var y = d3.scale.linear()
-				.range([height, 0]);
-
-			var xAxis = d3.svg.axis()
-				.scale(x)
-				.orient("bottom");
-
-			var yAxis = d3.svg.axis()
-				.scale(y)
-				.orient("left")
-				.ticks(10, "%");
-			
-			//Building container
-			var svg = d3.select("body").append("svg")
-							.attr("width", width)
-							.attr("height", height);
-							
-							
-			//load the data
-				d3.json(url, function(error, data) {
-			  if (error) console.log(error);
-			  console.log(data);
-			  
-			  //Binding the data
-			  var group = svg.selectAll("g")
-								//name of array of object is features
-								.data(data.features)
-								.enter()
-								.append("g")
-				
-				//define the x axis as the place of the earthquake				
-				x.domain(data.map(function(d) { return d.properties.place; }));
-				
-				//define the y axis as the magnitude
-				y.domain([0, d3.max(data, function(d) { return d.properties.mag; })]);
-
-				  svg.append("g")
-					  .attr("class", "x axis")
-					  .attr("transform", "translate(0," + height + ")")
-					  .call(xAxis);
-
-				  svg.append("g")
-					  .attr("class", "y axis")
-					  .call(yAxis)
-					.append("text")
-					  .attr("transform", "rotate(-90)")
-					  .attr("y", 6)
-					  .attr("dy", ".71em")
-					  .style("text-anchor", "end")
-					  .text("Magitude");
-
-				  svg.selectAll(".bar")
-					  .data(data)
-						.enter()
-						.append("rect")
-					  .attr("class", "bar")
-					  .attr("x", function(d) { return x(d.properties.place); })
-					  .attr("width", x.rangeBand())
-					  .attr("y", function(d) { return y(d.properties.mag); })
-					  .attr("height", function(d) { return height - y(d.properties.mag); });
-				
-						
-			});
-
-
-			
-			
-			</script>
-	</body>
-	
-</html>
+</script>
