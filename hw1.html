@@ -1,46 +1,61 @@
-<!DOCTYPE html>
+<!doctype HTML>
 <meta charset="utf-8">
-<title>Homework1</title>
-</style>
-<div class="chart"></div>
+<title>umbc2</title>
+
+<style>
+
+.chart div {
   font: 10px sans-serif;
   background-color: steelblue;
   text-align: right;
   padding: 3px;
   margin: 1px;
   color: white;
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
-<script>
-<script src="http://d3js.org/d3.v3.min.js"></script>
+}
+
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
 <body>
+<div>
+  <h1>Open the developer's console...</h1>
 </div>
+
+<div class="chart"></div>
+
 <script>
+
+var data; // This is a global.  We'll talk about why I defined it here.
+
 var url = "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson";
-d3.json(url, function(error, data) {
+
+d3.json(url, function(error, quakes) {
   if (error) console.log(error);
 
-  // All your code goes here, that is, in between the two curly brackets {...}
+  console.log("Data from USGS:", quakes);
 
-  // "data" is an Object with properties (you can inspect "data" in the developer's console)
-  console.log("This is the data object from USGS:", data);
+  quakes = quakes.features.map(function(d) { return d.properties.mag; });  // Setting the value of the global here.
 
-  // log the properties of "data" to the console
-  console.log("These are the properties of data object:", Object.keys(data));
+  console.log("Earthquake magnitudes:", quakes);
 
-  // data.features is an array -- one element for each earthquake
-  console.log("We want values from data.features (an array):", data.features);
+  data = [];
+  for (var i = 0; i < 10; i++) {
+    data[i] = quakes.filter(function(d) { return d >= i && d < i + 1; }).length;
+  } 
 
-  console.log("This is the first element of data.features array:", data.features[0]);
-  
-   var x = d3.scale.linear()
+  console.log("Binned data:", data);
+
+  // The rest of the code is directly from the example.  All we've done is provide a new "data" array
+  var x = d3.scale.linear()
       .domain([0, d3.max(data)])
       .range([0, 420]);
 
-		d3.select(".chart")
+  d3.select(".chart")
     .selectAll("div")
       .data(data)
     .enter().append("div")
       .style("width", function(d) { return x(d) + "px"; })
       .text(function(d) { return d; });
 });
+
 </script>
