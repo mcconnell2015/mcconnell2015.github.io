@@ -15,33 +15,35 @@
 </style>
 <svg class="chart"></svg>
 <script src="http://d3js.org/d3.v3.min.js"></script>
-<script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
 var url = "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson";
 
-var width = 420,
-    barHeight = 20;
+  d3.json(url, function(error, data) {
+  if (error) console.log(error);
 
-var x = d3.scale.linear()
-    .domain([0, d3.max(data)])
-    .range([0, width]);
 
-var chart = d3.select(".chart")
-    .attr("width", width)
-    .attr("height", barHeight * data.length);
+ // All your code goes here, that is, in between the two curly brackets {...}
 
-var bar = chart.selectAll("g")
-    .data(data)
-  .enter().append("g")
-    .attr("transform", function(d, i) { return "translate(0," + i * barHeight + ")"; });
+  // "data" is an Object with properties (you can inspect "data" in the developer's console)
+  console.log("This is the data object from USGS:", data);
 
-bar.append("rect")
-    .attr("width", x)
-    .attr("height", barHeight - 1);
+  // log the properties of "data" to the console
+  console.log("These are the properties of data object:", Object.keys(data));
 
-bar.append("text")
-    .attr("x", function(d) { return x(d) - 3; })
-    .attr("y", barHeight / 2)
-    .attr("dy", ".35em")
-    .text(function(d) { return d; });
+  // data.features is an array -- one element for each earthquake
+  console.log("We want values from data.features (an array):", data.features);
+
+  console.log("This is the first element of data.features array:", data.features[0]);
+  
+   var x = d3.scale.linear()
+			.domain([0, d3.max(data.features)])
+			.range([0, 10]);
+			
+		d3.select(".chart")
+		  .selectAll("div")
+			.data(data.features)
+		  .enter().append("div")
+			.style("width", function(d) { return x(d) + "px"; })
+			.text(function(d) { return d; });
 
 </script>
