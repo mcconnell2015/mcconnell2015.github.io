@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>GES 778 Homework 2</title>
+<title>778 Assignment 2: Maps</title>
 
 <style>
 body {
@@ -15,7 +15,7 @@ svg {
 }
 
 .info {
-  font-family: sans-serif;
+  font-family:sans-serif ;
   color: #000;
   position: absolute;
   top: 450px;
@@ -42,7 +42,7 @@ svg {
 	var data;
 	
 	// threshold magnitude
-	var smallest = 3.5;
+	var largest = 7;
 
 	// Path
 	var path = d3.geo.path();
@@ -76,8 +76,8 @@ svg {
 	  if (error) console.log(error);
 		//console.log(data);
 
-	 // Filter the largest earthquakes, >= 4.5 magnitude
-         var features = data.features.filter(function(d) { return ( d.properties.mag >= largest) });
+	 // Filter the earthquakes <= 7 magnitude
+         var features = data.features.filter(function(d) { return ( d.properties.mag <= largest) });
 		  
 	  // Bind the earthquake data
 	  var group = layer1.selectAll("g")
@@ -97,8 +97,8 @@ svg {
 		  .text(function(d) { return d.properties.mag;});
 	}
 
-	// Plot the states	
-	function plotStates(error, json) {
+	// Plot the countries	
+	function plotcountries(error, json) {
 	  if (error) console.log(error);
 		//console.log(json);
 
@@ -113,8 +113,8 @@ svg {
 		  .enter()
 		  .append("path")
 		  .attr("d", path)
-		  .attr("stroke", "white")
-		  .attr("fill", "grey");
+		  .attr("stroke", "black")
+		  .attr("fill", "brown");
 	}
 
 	function mousemoved() {
