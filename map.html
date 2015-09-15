@@ -1,100 +1,132 @@
 <!DOCTYPE html>
+<html>
+<head>
 <meta charset="utf-8">
-<title>umbc</title>
+<title>GES 778 Homework 2</title>
 
 <style>
-
-.line {
-  fill: none;
-  stroke: black;
-  stroke-width: 1px;
+body {
+  position: absolute;
+  margin: 0px;
 }
 
-rect {
-  fill: none;
-  stroke: black;
-  stroke-width: 1px;
+svg {
+  background-color: #c7d9e8;
 }
 
-path.quake, circle.quake {
-  fill: crimson;
-  fill-opacity: 0.4;
+.info {
+  font-family: sans-serif;
+  color: #000;
+  position: absolute;
+  top: 450px;
+  left: 800px;
 }
-
-path.counties, path.county-border {
-  fill: none;
-  stroke: #000;
-  stroke-opacity: .2;
-}
-
-path.state {
-  fill: none;
-  stroke: #000;
-}
-
 </style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/1.6.19/topojson.js"></script>
+</head>
 <body>
+<div id="header" align = "center">
+	<!--<h2>Location of Earthquakes in the United States</h2>
+	<h3>Magnitudes Equal to or Greater Than 3.5</h3>-->
+	<p><b><font size=5>Location of Earthquakes in the United States</font></b></p>
+	<p><font size=3>Magnitudes Equal to and Greater Than 3.5</font></p>
+</div>
 <script>
 
-var width = 960;
-var height = 500;
+	// set width and height of svg map
+	var width = 960, height = 500;
 
-var smallest = 2.5; // threshold magnitude
+	// declare a global variable
+	var data;
+	
+	// threshold magnitude
+	var smallest = 3.5;
 
-// Set the map projection centered on Oklahoma
-var projection = d3.geo.albers()
-    .scale(7543)
-    .translate([702, -186]);
+	// Path
+	var path = d3.geo.path();
 
-var path = d3.geo.path()
-    .pointRadius(5)
-    .projection(projection);
+	// Projection
+	var projection = path.projection();
 
-var svg = d3.select("body").append("svg")
-    .attr("width", width)
-    .attr("height", height);
+	// Building container/canvas - needed to draw the visualization 
+	var svg = d3.select("body").append("svg")
+		.attr("width", width)
+		.attr("height", height)
+		.on("mousemove", mousemoved);
 
-var layer1 = svg.append("g");
-var layer2 = svg.append("g");
-  
-// Read and plot the earthquake data
-d3.json("quakes.json", plotQuakes)
+	var layer2 = svg.append("g");
+	var layer1 = svg.append("g");
 
-// Read and plot the state & county boundaries
-d3.json("ok.json", plotState)
+	// create to display x,y
+	var info = d3.select("body").append("div")
+		.attr("class", "info");
+	
+	// Get states data
+	var url = "https://gist.githubusercontent.com/pbogden/8c6bcd912f9edebab99d/raw/countries.json";
+	d3.json(url, plotStates);
 
-function plotQuakes(error, data) {
-  if (error) console.log(error);
+	// Get earthquake data
+	var quakes = "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_month.geojson";
+	d3.json(quakes, plotQuakes);
+				
+	// Plot the earthquakes
+	function plotQuakes(error, data){
+	  if (error) console.log(error);
+		//console.log(data);
 
-  // Filter the small earthquakes
-  var features = data.features.filter(function(d) { return (+ d.properties.mag >= smallest) });
+	 // Filter the largest earthquakes, >= 4.5 magnitude
+         var features = data.features.filter(function(d) { return ( d.properties.mag >= largest) });
+		  
+	  // Bind the earthquake data
+	  var group = layer1.selectAll("g")
+		  .data(features)
+	      .enter();
 
-  // Plot the earthquakes
-  layer2.selectAll("path.quake")
-      .data(features)
-    .enter().append("path")
-      .attr("class", "quake")
-      .attr("d", path)
-}
+	  // Plot the earthquakes
+	  group.append("path")
+		  .attr("d", path)
+		  .attr("class", "area")
+		  .attr("fill", "red");
 
-function plotState(error, ok) {
-  if (error) console.log(error);
-  
-  var objects = ok.objects.ok;
-  var all = topojson.merge(ok, objects.geometries);
-  
-  layer1.append("path")
-      .datum(all)
-      .attr("class", "state")
-      .attr("d", path);
-  
-  layer1.append("path")
-      .datum(topojson.mesh(ok, objects, function(a, b) { return a !== b; }))
-      .attr("class", "county-border")
-      .attr("d", path);
- }
+	  // Label the earthquakes
+	  group.append("text")
+		  .attr("x", function (d) { return path.centroid(d)[0]; })
+		  .attr("y", function (d) { return path.centroid(d)[1]; })
+		  .text(function(d) { return d.properties.mag;});
+	}
 
+	// Plot the states	
+	function plotStates(error, json) {
+	  if (error) console.log(error);
+		//console.log(json);
+
+	  // Create array of GeoJSON features -- this defines the global variable "data"
+	  data = json.objects.countries.geometries
+	      .map(function(d) { return topojson.feature(json, d); })
+
+
+	  // Plot the features
+	  layer2.selectAll("path")
+		  .data(data)
+		  .enter()
+		  .append("path")
+		  .attr("d", path)
+		  .attr("stroke", "white")
+		  .attr("fill", "grey");
+	}
+
+	function mousemoved() {
+          info.text(formatLocation(projection.invert(d3.mouse(this)), projection.scale()));
+	}
+
+	function formatLocation(p, k) {
+	  var format = d3.format("." + Math.floor(Math.log(k) / 2 - 2) + "f");
+	  return (p[1] < 0 ? format(-p[1]) + "°S" : format(p[1]) + "°N") + " "
+		   + (p[0] < 0 ? format(-p[0]) + "°W" : format(p[0]) + "°E");
+	}
+	  
 </script>
+</body>
+</html>
