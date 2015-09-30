@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+.bar {
+  fill: orange;
+}
+
+
+.axis {
+  font: 13px Century Gothic;
+}
+
+.axis path,
+.axis line {
+  fill: black;
+  stroke: #000;
+  shape-rendering:crispEdges ;
+}
+</style>
+<body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+<script>
+
+  var margin = {top: 40, right: 40, bottom: 40, left: 50},
+      width = 960 - margin.left - margin.right,
+      height = 500 - margin.top - margin.bottom;
+	
+
+  var x = d3.scale.linear()
+      .range([0, width]);
+
+
+  var y = d3.scale.linear()
+      .range([height, 0]);
+
+  // x-axis
+  var xAxis = d3.svg.axis()
+	  .scale(x)
+	  .orient("bottom");
+
+  // y-axis
+  var yAxis = d3.svg.axis()
+      .scale(y)
+	  .orient("left");
+
+  var svg = d3.select("body").append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  //A30 Days, Magnitude 2.5+ Worldwide
+  var url = "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_month.geojson"
+  d3.json(url, function(error, data) {
+  if (error) console.log(error);
+	  
+    console.log("USGS:", data);
+
+    //array - mag values
+	quakesAry = [];
+	  
+    quakesAry  = data.features.map(function(d) { return d.properties.mag; });
+	  
+	// sort the values
+    quakesBucket = [];
+
+	//populate 
+    for (var i = 0; i < 10; i++) {
+	  //quakesAry.filter 
+	 
+      quakesBucket[i] = quakesAry.filter(function(d) { return d >= i && d < i + 1; }).length;
+    }
+	  
+	//x domain 
+	x.domain([0, quakesBucket.length]);
+	
+	y.domain([d3.min(quakesBucket, function(d) { return d; }), d3.max(quakesBucket, function(d) { return d; })]);
+	  
+	
+	var barWidth = width / quakesBucket.length;
+
+	//create x-axis
+	svg.append("g")
+	    .attr("class", "x axis")
+	    .attr("transform", "translate(0," + height + ")")
+	    .call(xAxis); //x scale and orientation
+
+    //create y-axis
+	svg.append("g")
+		.attr("class", "y axis")
+		.call(yAxis); //y scale and orientation
+		  
+	//append X-axis label
+	svg.append("text")
+	    .attr("x", width/1.75)
+	    .attr("y", height + 2*margin.bottom/3 + 9)
+	    .style("Century Gothic", "Middle")
+	    .text("Magnitude");
+	
+	//append Y-axis label
+	svg.append("text")
+	    .attr("transform", "rotate(-90)") 
+	    .attr("x", -height/2)
+	    .attr("y", -1 -margin.left/3)
+	    .attr("dy", "-1em")
+	    .style("Century Gothic", "middle")
+	    .text("Frequency");
+		 
+	//append title
+	svg.append("text")
+	    .attr("text-anchor", "middle") 
+        .attr("x", width/2)
+        .attr("y", -margin.top/2)
+        .attr("dy", "+.75em") 
+        .text("30 Days, Magnitude 2.5+ Worldwide");
+		 
+	//append bars to chart
+	svg.selectAll(".bar")
+	    .data(quakesBucket)
+	    .enter()
+	    .append("rect") 
+	    .attr("class", "bar");
+		 
+	 
+	  //set height and width 
+	  svg.selectAll("rect")
+	     .data(quakesBucket)
+		 .attr("x", function(d, i) { return x(i); })
+		 .attr("y", function(d) { return y(d); }) 
+	     .attr("width", barWidth-1)
+		 .attr("height", function(d) { return height - y(d); });
+		 
+	});
+
+</script>
